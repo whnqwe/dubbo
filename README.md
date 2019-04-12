@@ -177,5 +177,104 @@ dubbo.registry.address=zookeeper的集群地址
 
 
 
+## 启动服务检查
 
+如果提供方没有启动的时候，默认会去检测所依赖的服务是否正常提供服务
+
+如果check为false，表示启动的时候不去检查。当服务出现循环依赖的时候，check设置成false
+
+dubbo:reference  属性： check默认值是true、false
+
+ dubbo:consumer  check=”false”没有服务提供者的时候，报错
+
+dubbo:registry  check=false注册订阅失败报错
+
+## 多协议支持
+
+dubbo支持的协议： dubbo、RMI、**hessian**、webservice、http、Thrift
+
+#### hessian为例
+
+##### 引入jar包
+
+```xml
+<dependency>
+    <groupId>com.caucho</groupId>
+    <artifactId>hessian</artifactId>
+    <version>4.0.38</version>
+</dependency>
+<dependency>
+    <groupId>javax.servlet</groupId>
+    <artifactId>servlet-api</artifactId>
+    <version>2.5</version>
+</dependency>
+<dependency>
+    <groupId>org.mortbay.jetty</groupId>
+    <artifactId>jetty</artifactId>
+    <version>6.1.26</version>
+</dependency>
+```
+
+##### 修改provider.xml
+
+```xml
+  <dubbo:protocol name="hessian" port="20880" server="jetty"/>
+```
+
+##### 指定service服务的协议版本号
+
+```xml
+<!--发布的接口-->
+<dubbo:service interface="cn.zhangspace.IOrderService" ref="OrderService" protocol="hessian"/>
+```
+
+##### 消费端改造
+
+```xml
+ <dubbo:reference id="orderServices" interface="cn.zhangspace.IOrderService" protocol="hessian"/>
+```
+
+## 多注册中心支持
+
+```xml
+<dubbo:registry  id ="one" address="zookeeper://192.168.78.129:2181" timeout="10000"/>
+
+<dubbo:registry id ="two" address="zookeeper://192.168.78.128:2181" timeout="10000"/>
+```
+
+```xml
+    <dubbo:service interface="cn.zhangspace.IOrderService" ref="OrderService" protocol="hessian" register="one"/>
+    <dubbo:service interface="cn.zhangspace.IOrderService" ref="OrderService" protocol="hessian" register="two"/>
+```
+
+## 多版本支持
+
+```xml
+
+<dubbo:service interface="cn.zhangspace.IOrderService" ref="OrderService" version="0.0.0" protocol="hessian" />
+<dubbo:service interface="cn.zhangspace.IOrderService" ref="OrderService2" version="0.0.1" protocol="hessian" />
+
+<bean id="OrderService" class="cn.zhangspace.OrderServiceImpl"/>
+<bean id="OrderService2" class="cn.zhangspace.OrderServiceImpl2"/>
+```
+
+```xml
+<dubbo:reference id="orderServices" interface="cn.zhangspace.IOrderService" protocol="hessian" version="0.0.1"/>
+
+```
+
+## 异步调用
+
+> hessian协议，使用async异步回调会报错
+
+```xml
+    <dubbo:reference id="orderServices" interface="cn.zhangspace.IOrderService" protocol="hessian" version="0.0.1" async="true"/>
+
+```
+
+```java
+services.doOrder(request);
+Future<DoOrderResponse> response1 = RpcContext.getContext().getFuture();
+DoOrderResponse response = response1.get();
+```
 
