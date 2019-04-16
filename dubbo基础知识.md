@@ -459,3 +459,16 @@ String host = protocolConfig.getHost();
 
 ![](image/002.png)
 
+## 配置dubbo缓存文件
+
+> 注册中心的列表
+>
+> 服务提供者列表
+
+```xml
+ <dubbo:registry address="zookeeper://192.168.78.129:2181" timeout="10000" file="d:/dubbo-cache"/>
+
+    <dubbo:reference id="orderServices"  cluster="failsafe" interface="cn.zhangspace.IOrderService" protocol="dubbo" version="0.0.1" async="true" timeout="2000"/>
+
+```
+
